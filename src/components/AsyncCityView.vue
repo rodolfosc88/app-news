@@ -133,7 +133,7 @@ const route = useRoute();
 const getWeatherData = async () => {
     try {
         const weatherData = await axios.get(
-            `https://api.openweathermap.org/data/3.0/onecall?lat=${route.query.lat}&lon=${route.query.lng}&appid=038d07f0c5a70ba0088b7b2dfa293e2a&units=metric`
+            `${import.meta.env.VITE_API_URL}/3.0/onecall?lat=${route.query.lat}&lon=${route.query.lng}&appid=${import.meta.env.VITE_API_ID}&units=metric`
         );
 
         const localOffset = new Date().getTimezoneOffset() * 60000;

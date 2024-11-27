@@ -48,11 +48,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
-import CityList from '@/components/CityList.vue';
 import CityCardSkeleton from '@/components/CityCardSkeleton.vue';
+import CityList from '@/components/CityList.vue';
+import axios from 'axios';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const previewCity = (searchResult) => {
@@ -69,7 +69,7 @@ const previewCity = (searchResult) => {
   })
 }
 
-const mapboxAPIkey = "pk.eyJ1IjoicnNjaG1pZHQ4OCIsImEiOiJjbTM2OXU1anowMzQ4Mm1wdzZ4bzEzanFhIn0.g4VqUGpLOtEnIv6akGgt4g";
+
 const searchQuery = ref("");
 const queryTimeout = ref(null);
 const mapboxSearchResults = ref(null);
@@ -81,7 +81,7 @@ const getSearchResults = () => {
     if(searchQuery.value !== ""){
       try {
         const result = await axios.get(
-          `https://api.mapbox.com/search/geocode/v6/forward?q=${searchQuery.value}&access_token=${mapboxAPIkey}&types=place`
+          `${import.meta.env.VITE_API_URL_MAPBOX}/forward?q=${searchQuery.value}&access_token=${import.meta.env.VITE_API_MAPBOX_KEY}&types=place`
         );
         mapboxSearchResults.value = result.data.features;
       } catch {

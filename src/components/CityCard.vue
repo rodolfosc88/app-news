@@ -9,13 +9,17 @@
                 {{ Math.round(city.weather.main.temp) }}&deg;
             </p>
             <div class="flex gap-2">
-                <span class="text-xs">
+                <!-- <span class="text-xs">
                     Máx:
                     {{ Math.round(city.weather.main.temp_max) }}&deg;
                 </span>
                 <span class="text-xs">
                     Mín:
                     {{ Math.round(city.weather.main.temp_min) }}&deg;
+                </span> -->
+                <span class="text-xs">
+                    Sensação Térmica:
+                    {{ Math.round(city.weather.main.feels_like) }}&deg;
                 </span>
             </div>
         </div>
