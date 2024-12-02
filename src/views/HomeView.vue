@@ -92,4 +92,25 @@ const getSearchResults = () => {
     mapboxSearchResults.value = null;
   }, 300);
 }
+
+import "highlight.js/styles/stackoverflow-light.css";
+import { usePython } from "usepython";
+import { onBeforeMount } from 'vue';
+import "vuepython/style.css";
+
+const py = usePython()
+
+const code = `print('starting python script')
+a = 1
+b = 2
+print('finished python script')
+c = a + b
+# return value
+c`;
+
+async function init() {
+  await py.load();
+}
+
+onBeforeMount(() => init())
 </script>
