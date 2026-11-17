@@ -3,50 +3,60 @@
         <nav class="container flex flex-col sm:flex-row items-center gap-4 text-white py-6">
             <RouterLink :to="{name: 'home' }">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-sun text-2xl"></i>
+                    <i class="fa-solid fa-sun text-2xl" aria-hidden="true"></i>
                     <p class="text-2xl">App News</p>
                 </div>
             </RouterLink>
 
             <div class="flex gap-3 flex-1 justify-end">
-                <i class="fa-solid fa-circle-info text-xl hover:text-weather-secondary duration-150 cursor-pointer" 
-                @click="toggleModal"></i>
-                <i class="fa-solid fa-plus text-xl hover:text-weather-secondary duration-150 cursor-pointer"
-                @click="addCity" v-if="route.query.preview"></i>
+                <button
+                    type="button"
+                    class="text-xl hover:text-weather-secondary duration-150"
+                    aria-label="Sobre o app"
+                    @click="toggleModal"
+                >
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                </button>
+                <button
+                    v-if="route.query.preview"
+                    type="button"
+                    class="text-xl hover:text-weather-secondary duration-150"
+                    aria-label="Adicionar cidade"
+                    @click="addCity"
+                >
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                </button>
             </div>
 
-            <BaseModal 
+            <BaseModal
                 :modalActive="modalActive"
-                @close-modal="toggleModal"    
+                @close-modal="toggleModal"
             >
                 <div class="text-black">
-                <h1 class="text-2xl mb-1">About:</h1>
+                <h1 class="text-2xl mb-1">Sobre:</h1>
                 <p class="mb-4">
-                    The Local Weather allows you to track the current and
-                    future weather of cities of your choosing.
+                    O App News permite acompanhar o clima atual e a previsão
+                    das cidades que você escolher.
                 </p>
-                <h2 class="text-2xl">How it works:</h2>
+                <h2 class="text-2xl">Como funciona:</h2>
                 <ol class="list-decimal list-inside mb-4">
                     <li>
-                    Search for your city by entering the name into the
-                    search bar.
+                    Pesquise a sua cidade digitando o nome na barra de busca.
                     </li>
                     <li>
-                    Select a city within the results, this will take
-                    you to the current weather for your selection.
+                    Selecione uma cidade nos resultados para ver o clima atual
+                    do local escolhido.
                     </li>
                     <li>
-                    Track the city by clicking on the "+" icon in the
-                    top right. This will save the city to view at a
-                    later time on the home page.
+                    Acompanhe a cidade clicando no ícone "+" no canto superior
+                    direito. Ela ficará salva na página inicial.
                     </li>
                 </ol>
 
-                <h2 class="text-2xl">Removing a city</h2>
+                <h2 class="text-2xl">Remover uma cidade</h2>
                 <p>
-                    If you no longer wish to track a city, simply select
-                    the city within the home page. At the bottom of the
-                    page, there will be am option to delete the city.
+                    Se não quiser mais acompanhar uma cidade, selecione-a na
+                    página inicial. No fim da página haverá a opção de removê-la.
                 </p>
                 </div>
             </BaseModal>
@@ -59,37 +69,40 @@ import { ref } from 'vue';
 import { uid } from 'uid';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import BaseModal from './BaseModal.vue';
+import { loadCities, parseCoords, saveCities } from '@/services/weather';
 
-const savedCities = ref([]);
 const route = useRoute();
 const router = useRouter();
+
 const addCity = () => {
-    if (localStorage.getItem('savedCities')) {
-        savedCities.value = JSON.parse(localStorage.getItem('savedCities'));
+    const coords = parseCoords(route.query.lat, route.query.lng);
+    if (!coords) return;
+
+    const cities = loadCities();
+    // Não duplica uma cidade já salva (mesmas coordenadas)
+    const existing = cities.find(
+        (c) => Number(c.coords.lat) === coords.lat && Number(c.coords.lng) === coords.lng
+    );
+
+    let id = existing?.id;
+    if (!existing) {
+        id = uid();
+        cities.push({
+            id,
+            state: String(route.params.state ?? ''),
+            city: String(route.params.city ?? ''),
+            coords,
+        });
+        saveCities(cities);
     }
 
-    const locationObj = {
-        id: uid(),
-        state: route.params.state,
-        city: route.params.city,
-        coords: {
-            lat: route.query.lat,
-            lng: route.query.lng,
-        }
-    }
-
-    savedCities.value.push(locationObj);
-    localStorage.setItem("savedCities", JSON.stringify(savedCities.value));
-
-    let query = Object.assign({}, route.query);
+    const query = { ...route.query, id };
     delete query.preview;
-    query.id = locationObj.id;
-    router.replace({ query })
+    router.replace({ query });
 };
 
-const modalActive = ref(null);
+const modalActive = ref(false);
 const toggleModal = () => {
-    modalActive.value = !modalActive.value
+    modalActive.value = !modalActive.value;
 };
 </script>
-
