@@ -20,17 +20,20 @@ const router = createRouter({
       meta: {
         title: "Clima"
       },
-    },   
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: { name: 'home' },
+    },
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.afterEach((to) => {
   document.title = `${
     to.params.state
       ? `${to.params.city}, ${to.params.state}`
       : to.meta.title
   } | App News`;
-  next();
 })
 
 export default router

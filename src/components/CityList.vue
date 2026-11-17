@@ -9,42 +9,35 @@
 </template>
 
 <script setup>
-import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import CityCard from './CityCard.vue';
+import { getCurrentWeather, loadCities } from '@/services/weather';
 
 const savedCities = ref([]);
+
 const getCities = async () => {
-    if (localStorage.getItem("savedCities")){
-        savedCities.value = JSON.parse(localStorage.getItem("savedCities"))
-    }
+    const cities = loadCities();
 
-    const requests = [];
+    // allSettled: uma cidade com erro não derruba a lista inteira
+    const results = await Promise.allSettled(
+        cities.map((city) => getCurrentWeather(city.coords))
+    );
 
-    savedCities.value.forEach((city) => {
-        requests.push(axios.get(
-            `${import.meta.env.VITE_API_URL}/2.5/weather?lat=${city.coords.lat}&lon=${city.coords.lng}&appid=${import.meta.env.VITE_API_ID}&units=metric`
-        ))
-    })
-
-    const weatherData = await Promise.all(requests);
-
-    //Delay para melhorar UX
-    await new Promise((res) => setTimeout(res, 1000));
-
-    weatherData.forEach((value, index) => {
-        savedCities.value[index].weather = value.data;
-    })
-}
+    savedCities.value = cities.map((city, index) => ({
+        ...city,
+        weather: results[index].status === 'fulfilled' ? results[index].value : null,
+    }));
+};
 
 await getCities();
+
 const router = useRouter();
 const goToCityView = (city) => {
     router.push({
-        name: "cityView",
-        params: { state: city.state, city: city.city},
+        name: 'cityView',
+        params: { state: city.state, city: city.city },
         query: { id: city.id, lat: city.coords.lat, lng: city.coords.lng },
     });
-}
+};
 </script>
